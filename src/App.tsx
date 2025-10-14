@@ -1,19 +1,48 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
-import { Button } from "./components";
+//import { Button } from "./components";
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const countMore = () => {
-    setCount((count) => count + 1);
+  const consoleLoader = (loadingValue: boolean) => {
+    setLoading(loadingValue);
+    console.info(loading);
   };
 
-  return (
-    <>
-      <Button label={`Count is ${count}`} parentMethod={countMore} />
-    </>
-  );
+  const fechtData = async () => {
+    consoleLoader(true);
+    try {
+      const response = await fetch("https://api.example.com/data");
+
+      if (!response.ok) {
+        throw new Error("Error al obtener datos");
+      }
+      const jsonData = await response.json();
+
+      setData(jsonData);
+    } catch (err) {
+      setError(err as string);
+    } finally {
+      consoleLoader(false);
+    }
+  };
+
+  useEffect(() => {
+    fechtData();
+  }, []);
+
+  if (loading) {
+    return <div>Cargando...</div>;
+  }
+
+  if (error) {
+    return <div>UPS! Hay un error: {error}</div>;
+  }
+
+  return <div>{JSON.stringify(data)}</div>;
 }
 
 export default App;
